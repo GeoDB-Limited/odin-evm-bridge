@@ -1,0 +1,31 @@
+{
+  "name": "odinchain-helper-library",
+  "version": "0.0.5",
+  "description": "Smart Contract library for connecting with Odinchain",
+  "files": [
+    "/system-contracts/contracts/**/*.sol"
+  ],
+  "scripts": {
+    "test": "truffle test"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contracts",
+    "odin"
+  ],
+  "dependencies": {
+    "@openzeppelin/test-helpers": "^0.5.6",
+    "chai": "^4.2.0",
+    "@openzeppelin/contracts": "^3.4.0",
+    "openzeppelin-test-helpers": "^0.5.1",
+    "truffle": "^5.1.33",
+    "truffle-flattener": "^1.4.4"
+  },
+  "prettier": {
+    "trailingComma": "all",
+    "singleQuote": false
+  },
+  "license": "Apache-2.0"
+}

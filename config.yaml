@@ -1,0 +1,6 @@
+log: info
+ethereum:
+  endpoint: "NETWORK ENDPOINT"
+  gas_limit: 20000000
+  gas_price: 10000000000
+  private_key: "PRIVATE KEY"

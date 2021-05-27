@@ -71,7 +71,7 @@ func (s *Service) deployContract() (*common.Address, *types.Transaction, error) 
 	txOpts.GasLimit = ethConfig.GasLimit.Uint64()
 	txOpts.GasPrice = ethConfig.GasPrice
 
-	contractAddress, tx, _, err := generated.DeployCacheBridge(txOpts, s.ethereum, []generated.BridgeValidatorWithPower{})
+	contractAddress, tx, _, err := generated.DeployCacheBridge(txOpts, s.ethereum, s.config.Validators())
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to deploy contract")
 	}

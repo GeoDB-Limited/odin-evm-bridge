@@ -3,6 +3,7 @@ package config
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"github.com/GeoDB-Limited/odin-evm-bridge/system-contracts/generated"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -19,12 +20,15 @@ type Config interface {
 	EthereumClient() *ethclient.Client
 	EthereumConfig() EthereumConfig
 	EthereumSigner() (common.Address, *ecdsa.PrivateKey)
+	Validators() []generated.BridgeValidatorWithPower
 }
 
 // Config defines global service configurations.
 type config struct {
-	Log      string         `yaml:"log"`
-	Ethereum EthereumConfig `yaml:"ethereum"`
+	Log               string         `yaml:"log"`
+	Ethereum          EthereumConfig `yaml:"ethereum"`
+	InitialValidators []string       `yaml:"initial_validators"`
+	ValidatorPower    int64          `yaml:"validator_power"`
 }
 
 type EthereumConfig struct {
@@ -95,4 +99,17 @@ func (c *config) EthereumSigner() (common.Address, *ecdsa.PrivateKey) {
 // EthereumConfig returns ethereum config.
 func (c *config) EthereumConfig() EthereumConfig {
 	return c.Ethereum
+}
+
+// Validators returns slice of initial validators in Odin.
+func (c *config) Validators() []generated.BridgeValidatorWithPower {
+	validators := make([]generated.BridgeValidatorWithPower, 0, len(c.InitialValidators))
+	for _, addr := range c.InitialValidators {
+		validator := generated.BridgeValidatorWithPower{
+			Addr:  common.HexToAddress(addr),
+			Power: big.NewInt(c.ValidatorPower),
+		}
+		validators = append(validators, validator)
+	}
+	return validators
 }

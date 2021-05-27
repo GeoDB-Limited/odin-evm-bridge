@@ -33,36 +33,74 @@ func New(ctx context.Context, cfg config.Config) *Service {
 
 // Run performs deploying a bridge smart contract.
 func (s *Service) Run() (err error) {
-	contractAddress, tx, err := s.deployContract()
+	bridgeAddress, tx, err := s.deployBridgeContract()
 	if err != nil {
 		return errors.Wrap(err, "failed to deploy contract")
 	}
 
 	s.logger.WithFields(logrus.Fields{
 		"tx_hash":          tx.Hash(),
-		"contract_address": contractAddress.Hex(),
-	}).Info("Contract deployed")
+		"contract_address": bridgeAddress.Hex(),
+	}).Info("Bridge contract deployed")
+
+	datasetAddress, tx, err := s.deployDatasetContract(*bridgeAddress, 2)
+	if err != nil {
+		return errors.Wrap(err, "failed to deploy contract")
+	}
+
+	s.logger.WithFields(logrus.Fields{
+		"tx_hash":          tx.Hash(),
+		"contract_address": datasetAddress.Hex(),
+	}).Info("Dataset contract deployed")
 
 	return nil
 }
 
-// deployContract deploys a bridge contract.
-func (s *Service) deployContract() (*common.Address, *types.Transaction, error) {
+// deployBridgeContract deploys a bridge contract.
+func (s *Service) deployBridgeContract() (*common.Address, *types.Transaction, error) {
+	txOpts, err := s.getTxOpts()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to get tx opts")
+	}
+
+	contractAddress, tx, _, err := generated.DeployCacheBridge(txOpts, s.ethereum, s.config.Validators())
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to deploy contract")
+	}
+
+	return &contractAddress, tx, nil
+}
+
+// deployDatasetContract deploys a dataset contract.
+func (s *Service) deployDatasetContract(bridgeAddr common.Address, oracleScriptId uint64) (*common.Address, *types.Transaction, error) {
+	txOpts, err := s.getTxOpts()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to get tx opts")
+	}
+
+	contractAddress, tx, _, err := generated.DeployOdinDataset(txOpts, s.ethereum, bridgeAddr, oracleScriptId)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to deploy contract")
+	}
+
+	return &contractAddress, tx, nil
+}
+
+func (s *Service) getTxOpts() (*bind.TransactOpts, error) {
 	chainId, err := s.ethereum.NetworkID(s.context)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to get chain id")
+		return nil, errors.Wrap(err, "failed to get chain id")
 	}
 
 	address, pk := s.config.EthereumSigner()
-
 	txOpts, err := bind.NewKeyedTransactorWithChainID(pk, chainId)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to create transaction options")
+		return nil, errors.Wrap(err, "failed to create transaction options")
 	}
 
 	nonce, err := s.ethereum.PendingNonceAt(s.context, address)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to get a nonce")
+		return nil, errors.Wrap(err, "failed to get a nonce")
 	}
 
 	txOpts.Nonce = new(big.Int).SetUint64(nonce)
@@ -71,10 +109,5 @@ func (s *Service) deployContract() (*common.Address, *types.Transaction, error) 
 	txOpts.GasLimit = ethConfig.GasLimit.Uint64()
 	txOpts.GasPrice = ethConfig.GasPrice
 
-	contractAddress, tx, _, err := generated.DeployCacheBridge(txOpts, s.ethereum, s.config.Validators())
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to deploy contract")
-	}
-
-	return &contractAddress, tx, nil
+	return txOpts, nil
 }

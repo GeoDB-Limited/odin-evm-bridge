@@ -6,4 +6,5 @@ ethereum:
   private_key: "PRIVATE KEY"
 validator_power: 100
 initial_validators:
-  - "ODIN VALIDATOR" ADDRESS
+  - "ODIN VALIDATOR ADDRESS"
+bridge_address_storage: "ADDRESS_STORAGE.txt"

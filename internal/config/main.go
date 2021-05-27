@@ -21,14 +21,16 @@ type Config interface {
 	EthereumConfig() EthereumConfig
 	EthereumSigner() (common.Address, *ecdsa.PrivateKey)
 	Validators() []generated.BridgeValidatorWithPower
+	BridgeAddressStorage() string
 }
 
 // Config defines global service configurations.
 type config struct {
-	Log               string         `yaml:"log"`
-	Ethereum          EthereumConfig `yaml:"ethereum"`
-	InitialValidators []string       `yaml:"initial_validators"`
-	ValidatorPower    int64          `yaml:"validator_power"`
+	Log                      string         `yaml:"log"`
+	Ethereum                 EthereumConfig `yaml:"ethereum"`
+	InitialValidators        []string       `yaml:"initial_validators"`
+	ValidatorPower           int64          `yaml:"validator_power"`
+	BridgeAddressStoragePath string         `yaml:"bridge_address_storage"`
 }
 
 type EthereumConfig struct {
@@ -112,4 +114,9 @@ func (c *config) Validators() []generated.BridgeValidatorWithPower {
 		validators = append(validators, validator)
 	}
 	return validators
+}
+
+// BridgeAddressStorage returns the path to bridge address storage.
+func (c *config) BridgeAddressStorage() string {
+	return c.BridgeAddressStoragePath
 }

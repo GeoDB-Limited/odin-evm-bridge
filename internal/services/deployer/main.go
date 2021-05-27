@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"math/big"
+	"os"
 )
 
 // Service defines a service that deploys a bridge contract.
@@ -42,6 +43,10 @@ func (s *Service) Run() (err error) {
 		"tx_hash":          tx.Hash(),
 		"contract_address": bridgeAddress.Hex(),
 	}).Info("Bridge contract deployed")
+
+	if err := s.saveBridgeAddress(*bridgeAddress); err != nil {
+		return errors.Wrap(err, "failed to save bridge contract address")
+	}
 
 	datasetAddress, tx, err := s.deployDatasetContract(*bridgeAddress, 2)
 	if err != nil {
@@ -86,6 +91,7 @@ func (s *Service) deployDatasetContract(bridgeAddr common.Address, oracleScriptI
 	return &contractAddress, tx, nil
 }
 
+// getTxOpts returns tx opts
 func (s *Service) getTxOpts() (*bind.TransactOpts, error) {
 	chainId, err := s.ethereum.NetworkID(s.context)
 	if err != nil {
@@ -110,4 +116,17 @@ func (s *Service) getTxOpts() (*bind.TransactOpts, error) {
 	txOpts.GasPrice = ethConfig.GasPrice
 
 	return txOpts, nil
+}
+
+// SetBridgeAddress sets an address of the bridge contract to the storage.
+func (s *Service) saveBridgeAddress(address common.Address) error {
+	f, err := os.OpenFile(s.config.BridgeAddressStorage(), os.O_WRONLY|os.O_CREATE, 0777)
+	if err != nil {
+		return errors.Wrap(err, "failed to add the address to the storage")
+	}
+
+	if _, err := f.WriteString(address.String()); err != nil {
+		return errors.Wrap(err, "failed to add the address to the storage")
+	}
+	return nil
 }

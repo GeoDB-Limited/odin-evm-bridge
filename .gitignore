@@ -1,5 +1,15 @@
-node_modules
-vendor
-build
+# Dependency directories (remove the comment below to include it)
+vendor/
+node_modules/
+
+# IDE files
 .idea/
+
+# Local configurations
 config.*.yaml
+
+# Contract .abi and .bin
+build/
+
+# bridge deployment output
+ADDRESS_STORAGE.txt

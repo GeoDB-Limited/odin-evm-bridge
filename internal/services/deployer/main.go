@@ -48,7 +48,7 @@ func (s *Service) Run() (err error) {
 		return errors.Wrap(err, "failed to save bridge contract address")
 	}
 
-	datasetAddress, tx, err := s.deployDatasetContract(*bridgeAddress, 2)
+	datasetAddress, tx, err := s.deployDatasetContract(*bridgeAddress)
 	if err != nil {
 		return errors.Wrap(err, "failed to deploy contract")
 	}
@@ -77,13 +77,13 @@ func (s *Service) deployBridgeContract() (*common.Address, *types.Transaction, e
 }
 
 // deployDatasetContract deploys a dataset contract.
-func (s *Service) deployDatasetContract(bridgeAddr common.Address, oracleScriptId uint64) (*common.Address, *types.Transaction, error) {
+func (s *Service) deployDatasetContract(bridgeAddr common.Address) (*common.Address, *types.Transaction, error) {
 	txOpts, err := s.getTxOpts()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to get tx opts")
 	}
 
-	contractAddress, tx, _, err := generated.DeployOdinDataset(txOpts, s.ethereum, bridgeAddr, oracleScriptId)
+	contractAddress, tx, _, err := generated.DeployOdinDataset(txOpts, s.ethereum, bridgeAddr)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to deploy contract")
 	}
